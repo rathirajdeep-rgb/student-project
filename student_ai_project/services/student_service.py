@@ -2,6 +2,9 @@ import pandas as pd
 import joblib
 import os
 
+from student_ai_project.dao.student_dao import save_prediction, get_all_predictions
+
+
 BASE_DIR = os.path.abspath(__file__)
 
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "../../"))
@@ -21,7 +24,13 @@ def predict_marks(data):
     marks = float(model.predict(student)[0])
     result = "PASS" if marks >= 75 else "FAIL"
 
+    #savet to DB
+    save_prediction(data, marks, result)
+
     return {
         "marks": round(marks,2),
         "result": result
     }
+def fetch_history():
+    data = get_all_predictions()
+    return data

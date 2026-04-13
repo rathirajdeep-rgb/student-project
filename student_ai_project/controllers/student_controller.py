@@ -1,6 +1,6 @@
 from Tools.demo.sortvisu import steps
 from flask import Blueprint, request, jsonify
-from student_ai_project.services.student_service import predict_marks
+from student_ai_project.services.student_service import predict_marks, fetch_history
 
 student_bp = Blueprint('student_bp', __name__)
 
@@ -43,6 +43,13 @@ def predict():
             return jsonify({'error': error}), 400
         result = predict_marks(data)
         return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@student_bp.route('/history', methods=['GET'])
+def get_history():
+    try:
+                return jsonify(fetch_history())
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
