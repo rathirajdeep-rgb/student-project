@@ -22,14 +22,14 @@ def save_prediction(data, marks, result):
     cursor.close()
     conn.close()
 
-def get_all_predictions():
+def get_all_predictions(limit):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     query = """
-    select * from student_predictions order by id desc"""
+    select * from student_predictions order by id desc limit %s"""
 
-    cursor.execute(query)
+    cursor.execute(query, (limit,))
     result = cursor.fetchall()
     cursor.close()
     conn.close()

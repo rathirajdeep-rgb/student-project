@@ -31,6 +31,24 @@ def predict_marks(data):
         "marks": round(marks,2),
         "result": result
     }
-def fetch_history():
-    data = get_all_predictions()
+def fetch_history(limit):
+    data = get_all_predictions(limit)
     return data
+
+# Business Rules
+def validate_business_rues(data):
+    age = float(data['age'])
+    study_hours = float(data['study_hours'])
+    attendance = float(data['attendance'])
+    sleep_hours = float(data['sleep_hours'])
+    if age < 18:
+        return "Age must be >= 18 years"
+    if not (0<= study_hours <= 24):
+        return "Study hours must be between 0 ans 24"
+    if not (0<=attendance<=100):
+        return "Attendance must be between 0 and 100"
+    if not (0<= sleep_hours <= 24):
+        return "Sleep hours must be between 0 and 24"
+    if sleep_hours + study_hours > 24:
+        return "sum of Sleep hours and Study hours cannot be more than 24"
+    return None # valid

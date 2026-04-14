@@ -1,7 +1,14 @@
 from flask import Flask
+from flasgger import Swagger
 from student_ai_project.controllers.student_controller import student_bp
+from student_ai_project.utils.logger import setup_logger
+
+logger = setup_logger()
 
 app = Flask(__name__)
+
+# Swagger config
+swagger = Swagger(app)
 
 # Register controller
 app.register_blueprint(student_bp)
