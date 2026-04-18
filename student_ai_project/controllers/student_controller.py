@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
-from student_ai_project.services.student_service import predict_marks, fetch_history, validate_business_rues
+from student_ai_project.services.student_service import predict_marks, fetch_history, validate_business_rules
 from student_ai_project.validators.student_validator import validate_request
-from student_ai_project.utils.response import success_response, error_response
+from student_ai_project.utils.response import success_response
 import logging
-logger = logging.getLogger()
+
+logger = logging.getLogger(__name__)
 
 student_bp = Blueprint('student_bp', __name__)
 
@@ -41,25 +42,19 @@ def predict():
               type: string
     """
 
-    try:
-        data = request.get_json()
-        logger.info(f"Incoming Request: {data}")
-        # validation steps
-        error = validate_request(data)
-        if error:
-            logger.error(f"Validation_failed: {error}")
-            return jsonify(error_response(error)), 400
+    data = request.get_json()
+    logger.info(f"Incoming Request: {data}")
 
-        error = validate_business_rues(data)
-        if error:
-            logger.error(f"Validation_failed: {error}")
-            return jsonify(error_response(error)), 400
-        result = predict_marks(data)
-        logger.info(f"Prediction success: {result}")
-        return jsonify(success_response(result)), 200
-    except Exception as e:
-      logger.error("Exception in /predict")
-      return jsonify(error_response(str(e))), 500
+     # validation steps
+    validate_request(data)
+    validate_business_rules(data)
+
+    result = predict_marks(data)
+
+    logger.info(f"Prediction success: {result}")
+    return jsonify(success_response(result)), 200
+
+
 
 @student_bp.route('/history', methods=['GET'])
 def get_history():
@@ -78,14 +73,11 @@ def get_history():
       200:
         description: list of predictions
     """
-    try:
-        limit = request.args.get('limit', default=5, type=int)
-        logger.info(f"Fetching history with limit: {limit}")
-        data = fetch_history(limit)
-        logger.info(f"Fetched {len(data)} records")
-        return jsonify(success_response(data)), 200
-    except Exception as e:
-        logger.error("Exception in /history")
-        return jsonify(error_response(str(e))), 500
+
+    limit = request.args.get('limit', default=5, type=int)
+    logger.info(f"Fetching history with limit: {limit}")
+    data = fetch_history(limit)
+    logger.info(f"Fetched {len(data)} records")
+    return jsonify(success_response(data)), 200
 
 

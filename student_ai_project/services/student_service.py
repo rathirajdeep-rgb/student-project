@@ -3,7 +3,7 @@ import joblib
 import os
 
 from student_ai_project.dao.student_dao import save_prediction, get_all_predictions
-
+from student_ai_project.utils.exceptions import ValidationError
 
 BASE_DIR = os.path.abspath(__file__)
 
@@ -36,19 +36,19 @@ def fetch_history(limit):
     return data
 
 # Business Rules
-def validate_business_rues(data):
-    age = float(data['age'])
-    study_hours = float(data['study_hours'])
-    attendance = float(data['attendance'])
-    sleep_hours = float(data['sleep_hours'])
+def validate_business_rules(data):
+    age = data['age']
+    study_hours = data['study_hours']
+    attendance = data['attendance']
+    sleep_hours = data['sleep_hours']
     if age < 18:
-        return "Age must be >= 18 years"
+        raise ValidationError("Age must be >= 18 years")
     if not (0<= study_hours <= 24):
-        return "Study hours must be between 0 ans 24"
+        raise ValidationError("Study hours must be between 0 ans 24")
     if not (0<=attendance<=100):
-        return "Attendance must be between 0 and 100"
+        raise ValidationError("Attendance must be between 0 and 100")
     if not (0<= sleep_hours <= 24):
-        return "Sleep hours must be between 0 and 24"
+        raise ValidationError("Sleep hours must be between 0 and 24")
     if sleep_hours + study_hours > 24:
-        return "sum of Sleep hours and Study hours cannot be more than 24"
+        raise ValidationError("sum of Sleep hours and Study hours cannot be more than 24")
     return None # valid
