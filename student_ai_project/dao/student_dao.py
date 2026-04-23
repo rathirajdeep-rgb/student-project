@@ -35,3 +35,12 @@ def get_all_predictions(limit):
     conn.close()
     return result
 
+def execute_custom_query(query):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(query)
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return result

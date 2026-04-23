@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from student_ai_project.services.student_service import predict_marks, fetch_history, validate_business_rules
+from student_ai_project.services.student_service import predict_marks, fetch_history, validate_business_rules, answer_student_question
 from student_ai_project.validators.student_validator import validate_request
 from student_ai_project.utils.response import success_response
 import logging
@@ -81,3 +81,34 @@ def get_history():
     return jsonify(success_response(data)), 200
 
 
+@student_bp.route('/ask', methods=['POST'])
+def ask():
+    """
+    Get Question Answered
+    ---
+    tags:
+      - Question Answered
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            question:
+              type: string
+    responses:
+      200:
+        description: Answer
+        schema:
+          type: object
+          properties:
+            answer:
+              type: string
+    """
+    data = request.get_json()
+    question = data['question'].lower()
+    logger.info(f"Question received: {question}")
+    answer = answer_student_question(question)
+    logger.info(f"Question successfully answered: {answer}")
+    return jsonify(success_response({"answer": answer})), 200
