@@ -3,9 +3,10 @@ import joblib
 import os
 import re
 
-from student_ai_project.dao.student_dao import save_prediction, get_all_predictions, execute_custom_query
+from student_ai_project.dao.student_dao import save_prediction, get_all_predictions, execute_custom_query, run_generated_sql
 from student_ai_project.utils.exceptions import ValidationError
-
+from student_ai_project.services.ai_service import ask_ai
+from student_ai_project.services.sql_ai_service import generate_sql
 
 
 BASE_DIR = os.path.abspath(__file__)
@@ -57,9 +58,9 @@ def validate_business_rules(data):
     return None # valid
 
 def answer_student_question(question):
-    if any (word in question for word in ["above", "more"]) and 'mark' in question:
-        result = execute_custom_query("select AVG(marks) from student_predictions")
-        return f" Average marks are {round(result[0][0],2)}"
+    if any (word in question for word in ["count", "many"]) and 'pass' in question:
+        result = execute_custom_query("select count(*) from student_predictions where result = 'Pass'")
+        return f" NUmber of student passed is {(result[0][0])}"
     if any (word in question for word in ["average", "mean", "avg"]) and 'mark' in question:
         result = execute_custom_query("select AVG(marks) from student_predictions")
         return f" Average marks are {round(result[0][0],2)}"
@@ -107,3 +108,75 @@ def answer_student_question(question):
         result = execute_custom_query(query)
         return f"Found{result[0][0]} matching students"
     return " Sorry, I don't understand that question yet"
+
+def smart_copilot(question):
+    if any(word in question for word in ['count', 'how many']):
+        if 'pass' in question:
+            result = execute_custom_query("select count(*) from student_predictions where result = 'Pass'")
+            return f" Number of passed student is {result[0][0]} "
+        elif 'fail' in question:
+            result = execute_custom_query("select count(*) from student_predictions where result = 'Fail'")
+            return f" Number of failed student is {result[0][0]} "
+        else:
+            result = execute_custom_query("select count(*) from student_predictions")
+            return f" Number of passed student is {result[0][0]} "
+    if 'average' in question:
+        if 'marks' in question:
+            result = execute_custom_query("select avg(marks) from student_predictions")
+            return f" Average marks are {round(result[0][0],2)}"
+        elif 'attendance' in question:
+            result = execute_custom_query("select avg(attendance) from student_predictions")
+            return f" Average attendance is {round(result[0][0],2)}"
+        else:
+            return(ask_ai(question))
+
+    if 'predict' in question:
+        try:
+            age = int(re.search(r"age\s*(\d+)", question).group(1))
+            study_hours = float(re.search(r"study_hours\s*(\d+)", question).group(1))
+            attendance = float(re.search(r"attendance\s*(\d+)", question).group(1))
+            sleep_hours = float(re.search(r"sleep_hours\s*(\d+)", question).group(1))
+            data = {'age': age, 'study_hours': study_hours, 'attendance': attendance,
+                    'sleep_hours': sleep_hours}
+            prediction = predict_marks(data)
+            return prediction
+        except:
+            return('Please provide complete list of input like age 20, studoy hours 5, sleep hours 4 and attendance 79')
+    return ask_ai(question)
+
+
+def smart_copilot_v2(question):
+    try:
+        sql_query = generate_sql(question)
+        print('Generated SQL:', sql_query)
+        result = run_generated_sql(sql_query)
+        print('Generated result:', result)
+        if not result:
+            return {
+                "type": "SQL",
+                "query": sql_query,
+                "result": "No results found"
+            }
+        if len(result) == 1 and len(result[0]) == 1:
+            return {
+                "type": "SQL",
+                "query": sql_query,
+                "result": result[0][0]
+            }
+
+        formatted_result = [list(row) for row in result]
+        return {
+            "type": "SQL",
+            "query": sql_query,
+            "result": formatted_result
+        }
+    except Exception as e:
+        print('Error:', str(e))
+        #fallback to AI
+        answer = ask_ai(question)
+        return {
+            "type": "ai",
+            "answer": answer
+        }
+
+

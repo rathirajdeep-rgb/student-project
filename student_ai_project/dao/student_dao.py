@@ -1,3 +1,5 @@
+from idlelib import query
+
 from db.db import get_db_connection
 
 def save_prediction(data, marks, result):
@@ -44,3 +46,8 @@ def execute_custom_query(query):
     cursor.close()
     conn.close()
     return result
+
+def run_generated_sql(query):
+    if not query.lower().startswith("select"):
+        raise ValueError("Only SELECT queries are allowed")
+    return execute_custom_query(query)

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from student_ai_project.services.student_service import predict_marks, fetch_history, validate_business_rules, answer_student_question
+from student_ai_project.services.student_service import predict_marks, fetch_history, validate_business_rules, answer_student_question, smart_copilot, smart_copilot_v2
 from student_ai_project.validators.student_validator import validate_request
 from student_ai_project.utils.response import success_response
 import logging
@@ -80,7 +80,6 @@ def get_history():
     logger.info(f"Fetched {len(data)} records")
     return jsonify(success_response(data)), 200
 
-
 @student_bp.route('/ask', methods=['POST'])
 def ask():
     """
@@ -112,3 +111,69 @@ def ask():
     answer = answer_student_question(question)
     logger.info(f"Question successfully answered: {answer}")
     return jsonify(success_response({"answer": answer})), 200
+
+@student_bp.route('/copilot', methods=['POST'])
+def copilot():
+    """
+    Smart Student AI Copilot
+    ---
+    tags:
+      - AI Copilot
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            question:
+              type: string
+              example: "How can I improve my marks?"
+    responses:
+      200:
+        description: Smart AI response
+        schema:
+          type: object
+          properties:
+            answer:
+              type: string
+    """
+    data = request.get_json()
+    question = data['question'].lower()
+    logger.info(f"Smart Copilot question received: {question}")
+    answer = smart_copilot(question)
+    logger.info(f"Question successfully answered by smart copilot: {answer}")
+    return jsonify(success_response({"answer": answer})), 200
+
+@student_bp.route('/smart-copilot', methods=['POST'])
+def smart_copilot():
+    """
+    Smart Student AI driven Copilot
+    ---
+    tags:
+      - AI Copilot
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            question:
+              type: string
+              example: "How can I improve my marks?"
+    responses:
+      200:
+        description: Smart AI response
+        schema:
+          type: object
+          properties:
+            answer:
+              type: object
+    """
+    data = request.get_json()
+    question = data['question']
+    logger.info(f"Smart AI led Copilot question received: {question}")
+    response = smart_copilot_v2(question)
+    logger.info(f"Smart copilot response: {response}")
+    return jsonify(success_response(response)), 200
